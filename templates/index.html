@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Epoch Time Converter</title>
+</head>
+<body>
+    <h1>Epoch Time Converter</h1>
+    <form method="POST">
+        <input type="text" name="epoch_time" placeholder="Enter Epoch Time">
+        <input type="submit" value="Convert">
+    </form>
+    {% if current_time %}
+        <h2>Current Time:</h2>
+        <p>{{ current_time }}</p>
+    {% endif %}
+    {% if converted_time %}
+        <h2>Converted Time:</h2>
+        <p>{{ converted_time }}</p>
+    {% endif %}
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+    <script>
+        function updateClock() {
+            var currentTime = new Date();
+            var formattedTime = currentTime.toLocaleString();
+            document.getElementById("clock").innerHTML = formattedTime;
+        }
+        setInterval(updateClock, 1000);
+    </script>
+    <h2>Clock:</h2>
+    <p id="clock"></p>
+</body>
+</html>
+
