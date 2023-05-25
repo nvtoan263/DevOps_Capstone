@@ -11,5 +11,5 @@ install:
 	chmod +x ./hadolint	
 # Target for linting the code
 lint:
-	flake8 backend.py
+	pylint --disable=R,C,W1203,W1202 backend.py
 	./hadolint Dockerfile
