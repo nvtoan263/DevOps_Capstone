@@ -1,83 +1,53 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
 version: 2.1
+
+orbs:
+  kubernetes: circleci/kubernetes@1.3.1
+  aws-eks: circleci/aws-eks@2.2.0
+
 jobs:
   build:
     docker:
-      - image: circleci/python:3.9
+    # Use the same Docker base as the project
+      - image: python:3.7.3-stretch
+
+    working_directory: ~/repo
 
     steps:
       - checkout
 
-      # Install dependencies
-      - run:
-          name: Install Dependencies
-          command: |
-            pip install -r requirements.txt
-
-      # Run tests
-      - run:
-          name: Run Tests
-          command: |
-            python -m unittest discover -s tests -p "*_test.py"
-
-      # Lint code
-      - run:
-          name: Lint Code
-          command: |
-            pip install flake8
-            flake8 your_python_script.py
-
-  deploy:
-    docker:
-      - image: docker:20
-
-    steps:
-      - checkout
-
-      # Build and push Docker image
-      - setup_remote_docker:
-          version: 20.10.8
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
 
       - run:
-          name: Build and Push Docker Image
+          name: install dependencies
           command: |
-            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-            docker build -t your-webapp-image .
-            docker tag your-webapp-image $DOCKER_USERNAME/your-webapp-image:latest
-            docker push $DOCKER_USERNAME/your-webapp-image:latest
+            python3 -m venv ~/.devops
+            source ~/.devops/bin/activate
+            make install
 
-      # Deploy to EKS
+            # Install hadolint
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+            chmod +x /bin/hadolint
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
       - run:
-          name: Deploy to EKS
+          name: run lint
           command: |
-            echo "Installing eksctl"
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/eksctl /usr/local/bin
-            eksctl version
-
-            echo "Deploying application to EKS"
-            eksctl create cluster --name your-cluster-name --version 1.21 --region your-region --node-type t2.medium --nodes-min 3 --nodes-max 5
-            kubectl apply -f your-deployment.yaml
-
-      # Smoke Test
-      - run:
-          name: Smoke Test
-          command: |
-            curl http://your-webapp-url/
-
-      # Load Test
-      - run:
-          name: Load Test
-          command: |
-            # Perform load test and check the number of pods
-
-      # Rollback
-      - run:
-          name: Rollback
-          command: |
-            # Rollback to the previous deployment
-
-      # Delete environment
-      - run:
-          name: Delete Environment
-          command: |
-            eksctl delete cluster --name your-cluster-name --region your-region
+            source ~/.devops/bin/activate
+            make lint
+workflows:
+  deploy-webapp-time-converter-pipeline:
+    jobs:
+      - build
