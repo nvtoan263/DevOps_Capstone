@@ -84,3 +84,6 @@ workflows:
       - build
       - publish-image-dockerhub:
           requires: [build]
+          filters:
+            branches:
+              only: [main]
