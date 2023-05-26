@@ -15,7 +15,7 @@ def index():
             except ValueError:
                 error_message = 'Invalid epoch time.'
                 return render_template('index.html', error_message=error_message)
-    random text to test lint function correctly
+    #random text to test lint function correctly
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return render_template('index.html', current_time=current_time)
 
