@@ -110,7 +110,9 @@ jobs:
           resource-name: deployment/toannv15-devops-capstone
           show-kubectl-command: true
           get-rollout-status: true
-          
+      - kubernetes/create-or-update-resource:
+          resource-file-path: k8s-scripts/service.yml                  
+
 workflows:
   deploy-webapp-time-converter-pipeline:
     jobs:
