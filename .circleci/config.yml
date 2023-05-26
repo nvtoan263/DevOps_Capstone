@@ -111,7 +111,7 @@ jobs:
           show-kubectl-command: true
           get-rollout-status: true
       - kubernetes/create-or-update-resource:
-          resource-file-path: k8s-scripts/service.yml                  
+          resource-file-path: k8s-scripts/loadbalancer_services.yml                  
 
 workflows:
   deploy-webapp-time-converter-pipeline:
