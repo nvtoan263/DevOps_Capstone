@@ -1,0 +1,14 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: toannv15-devops-capstone #this cluster name used accross project
+  region: us-east-1
+
+availabilityZones: ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+nodeGroups:
+  - name: node-group-devops-capstone
+    instanceType: t2.medium
+    desiredCapacity: 2
+    

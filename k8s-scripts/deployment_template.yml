@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toannv15-devops-capstone
+spec:
+  selector:
+    matchLabels:
+      app: toannv15-devops-capstone
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: toannv15-devops-capstone
+    spec:
+      containers:
+      - name: toannv15-devops-capstone
+        image: "${IMAGE_TAG}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

@@ -62,7 +62,7 @@ jobs:
       - run:
           name: Build docker image
           command: |
-            image_name="$APP_NAME:rev-${CIRCLE_WORKFLOW_ID:0:7}"
+            image_name="$APP_NAME:${CIRCLE_WORKFLOW_ID:0:7}"
             echo $image_name
             echo "$image_name" > imagename.txt
             echo "Building image name: ${image_name}"
@@ -77,7 +77,7 @@ jobs:
             docker push $DOCKER_USERNAME/"$image_name"
 
             echo "Writing workflow id to kvdb after pushing done"
-            curl -k https://kvdb.io/UFkymjGsJvx2GqaNaLpnRo/docker_${CIRCLE_WORKFLOW_ID:0:7} -d '1'        
+            curl -k https://kvdb.io/UFkymjGsJvx2GqaNaLpnRo/docker_latest_version -d "${CIRCLE_WORKFLOW_ID:0:7}"
   deploy-to-aws-eks:
     docker:
       - image: cimg/aws:2023.04
@@ -95,23 +95,22 @@ jobs:
       - run:
           name: Get new version
           command: |
-              latest_version=$( curl https://kvdb.io/7AiAwC67kGTnWWyt6acGGm/udahousefx_image_version )
+              latest_version=$( curl https://kvdb.io/UFkymjGsJvx2GqaNaLpnRo/docker_latest_version )
               echo "Latest version ${latest_version}"
-              # kubectl set image deployment/udahousefx udahousefx=tien4dev/udahousefx:"R${latest_version}"
-              export IMAGE_TAG="R${latest_version}"
-              
+              export IMAGE_TAG="$DOCKER_USERNAME/$APP_NAME:${latest_version}"
               echo "Image name: ${IMAGE_TAG}"
-
-              circleci env subst < k8s/deployment_tpl.yml > k8s/deployment.yml
+              circleci env subst < k8s-scripts/deployment_template.yml > k8s-scripts/deployment.yml
       - run:
-          name: Test get version
+          name: Preview deployment.yml
           command: |
-              cat k8s/deployment.yml
+              cat k8s-scripts/deployment.yml
       
       - kubernetes/create-or-update-resource:
-          resource-file-path: k8s/deployment.yml
-          resource-name: deployment/udahousefx
+          resource-file-path: k8s-scripts/deployment.yml
+          resource-name: deployment/toannv15-devops-capstone
+          show-kubectl-command: true
           get-rollout-status: true
+          
 workflows:
   deploy-webapp-time-converter-pipeline:
     jobs:
@@ -123,4 +122,4 @@ workflows:
               only: [main]
       - deploy-to-aws-eks:
           requires: [publish-image-dockerhub]
-          cluster-name: toannv15-devops-capstone-cluster
+          cluster-name: toannv15-devops-capstone # this cluster name use accross project
