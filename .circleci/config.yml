@@ -78,6 +78,40 @@ jobs:
 
             echo "Writing workflow id to kvdb after pushing done"
             curl -k https://kvdb.io/UFkymjGsJvx2GqaNaLpnRo/docker_${CIRCLE_WORKFLOW_ID:0:7} -d '1'        
+  deploy-to-aws-eks:
+    docker:
+      - image: cimg/aws:2023.04
+    parameters:
+        cluster-name:
+          description: Name of the EKS cluster
+          type: string
+    steps:
+      - checkout
+      #install kubectl
+      - kubernetes/install-kubectl
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      
+      - run:
+          name: Get new version
+          command: |
+              latest_version=$( curl https://kvdb.io/7AiAwC67kGTnWWyt6acGGm/udahousefx_image_version )
+              echo "Latest version ${latest_version}"
+              # kubectl set image deployment/udahousefx udahousefx=tien4dev/udahousefx:"R${latest_version}"
+              export IMAGE_TAG="R${latest_version}"
+              
+              echo "Image name: ${IMAGE_TAG}"
+
+              circleci env subst < k8s/deployment_tpl.yml > k8s/deployment.yml
+      - run:
+          name: Test get version
+          command: |
+              cat k8s/deployment.yml
+      
+      - kubernetes/create-or-update-resource:
+          resource-file-path: k8s/deployment.yml
+          resource-name: deployment/udahousefx
+          get-rollout-status: true
 workflows:
   deploy-webapp-time-converter-pipeline:
     jobs:
@@ -87,3 +121,6 @@ workflows:
           filters:
             branches:
               only: [main]
+      - deploy-to-aws-eks:
+          requires: [publish-image-dockerhub]
+          cluster-name: toannv15-devops-capstone-cluster
