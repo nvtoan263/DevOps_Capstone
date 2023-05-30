@@ -57,7 +57,7 @@ kubectl apply -f ./k8s-scripts/deployment_template.yaml
 ```
 - Create loadbalancer & get status
 ```bash
-kubectl apply -f ./k8s-scripts/loadbalancer_servoce.yaml
+kubectl apply -f ./k8s-scripts/loadbalancer_services.yaml
 kubectl get services
 ```
 # Reference running site (temporary)
